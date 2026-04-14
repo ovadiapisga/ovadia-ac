@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>עובדיה מיזוג אוויר</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #333; }
+
+  #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #1a73e8, #0d47a1); }
+  .login-box { background: white; border-radius: 16px; padding: 40px; width: 90%; max-width: 360px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+  .login-box h1 { font-size: 22px; color: #1a73e8; margin-bottom: 8px; }
+  .login-box p { color: #888; font-size: 13px; margin-bottom: 24px; }
+  .login-box input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; margin-bottom: 12px; text-align: center; letter-spacing: 2px; }
+  .login-box button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .login-box .error { color: #ea4335; font-size: 13px; margin-top: 8px; display: none; }
+
+  #app { display: none; }
+  header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+  header h1 { font-size: 22px; }
+  header span { font-size: 13px; opacity: 0.85; }
+  .logout { background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+
+  .tabs { display: flex; background: white; border-bottom: 2px solid #e0e0e0; padding: 0 16px; }
+  .tab { padding: 12px 20px; cursor: pointer; font-size: 14px; border-bottom: 3px solid transparent; color: #666; transition: all 0.2s; }
+  .tab.active { border-bottom-color: #1a73e8; color: #1a73e8; font-weight: 600; }
+
+  .content { padding: 20px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .card { background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .card .num { font-size: 36px; font-weight: 700; color: #1a73e8; }
+  .card .label { font-size: 13px; color: #888; margin-top: 4px; }
+  .card.green .num { color: #34a853; }
+  .card.red .num { color: #ea4335; }
+  .card.orange .num { color: #fb8c00; }
+
+  table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  th { background: #1a73e8; color: white; padding: 12px 14px; font-size: 13px; text-align: right; }
+  td { padding: 11px 14px; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8f9ff; }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .badge.green { background: #e6f4ea; color: #2e7d32; }
+  .badge.red { background: #fce8e6; color: #c62828; }
+  .badge.orange { background: #fff3e0; color: #e65100; }
+  .badge.blue { background: #e8f0fe; color: #1565c0; }
+
+  .btn { padding: 8px 18px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .btn-primary { background: #1a73e8; color: white; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+  .toolbar { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+  .toolbar input, .toolbar select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; }
+
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
+  .modal-bg.open { display: flex; }
+  .modal { background: white; border-radius: 16px; padding: 28px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+  .modal h2 { margin-bottom: 20px; color: #1a73e8; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; color: #555; margin-bottom: 5px; }
+  .field input, .field select, .field textarea { width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; font-family: inherit; }
+  .field textarea { height: 80px; resize: vertical; }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .btn-cancel { background: #f0f0f0; color: #333; }
+
+  .section-title { font-size: 16px; font-weight: 700; color: #333; margin-bottom: 12px; }
+  .profit { color: #34a853; font-weight: 700; }
+  .loss { color: #ea4335; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- מסך כניסה -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>❄️ עובדיה מיזוג אוויר</h1>
+    <p>מערכת ניהול עסקית</p>
+    <input type="password" id="password-input" placeholder="הכנס סיסמה" onkeydown="if(event.key==='Enter') checkPassword()">
+    <button onclick="checkPassword()">כניסה</button>
+    <div class="error" id="login-error">סיסמה שגויה, נסה שוב</div>
+  </div>
+</div>
+
+<!-- האפליקציה -->
+<div id="app">
+  <header>
+    <h1>❄️ עובדיה מיזוג אוויר</h1>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span id="dateNow"></span>
+      <button class="logout" onclick="logout()">יציאה</button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showPage('dashboard',event)">🏠 לוח בקרה</div>
+    <div class="tab" onclick="showPage('projects',event)">🔧 פרויקטים</div>
+    <div class="tab" onclick="showPage('billing',event)">💰 גבייה</div>
+    <div class="tab" onclick="showPage('calendar',event)">📅 יומן</div>
+  </div>
+
+  <div class="content">
+    <div class="page active" id="page-dashboard">
+      <div class="cards">
+        <div class="card"><div class="num" id="stat-total">0</div><div class="label">סה"כ פרויקטים</div></div>
+        <div class="card orange"><div class="num" id="stat-active">0</div><div class="label">בביצוע</div></div>
+        <div class="card green"><div class="num" id="stat-done">0</div><div class="label">הושלמו</div></div>
+        <div class="card red"><div class="num" id="stat-unpaid">0</div><div class="label">ממתין לתשלום</div></div>
+        <div class="card green"><div class="num" id="stat-revenue">0</div><div class="label">הכנסות (₪)</div></div>
+      </div>
+      <div class="section-title">פרויקטים אחרונים</div>
+      <table><thead><tr><th>לקוח</th><th>סוג עבודה</th><th>סטטוס</th><th>סכום</th></tr></thead><tbody id="recent-projects"></tbody></table>
+    </div>
+
+    <div class="page" id="page-projects">
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="openModal('project')">+ פרויקט חדש</button>
+        <input type="text" id="search-projects" placeholder="חיפוש לקוח..." oninput="renderProjects()">
+        <select id="filter-status" onchange="renderProjects()">
+          <option value="">כל הסטטוסים</option>
+          <option value="בביצוע">בביצוע</option>
+          <option value="הושלם">הושלם</option>
+          <option value="ממתין">ממתין</option>
+        </select>
+      </div>
+      <table><thead><tr><th>לקוח</th><th>טלפון</th><th>סוג עבודה</th><th>סטטוס</th><th>עלות מערכת</th><th>מחיר ללקוח</th><th>רווח</th><th>פעולות</th></tr></thead><tbody id="projects-table"></tbody></table>
+    </div>
+
+    <div class="page" id="page-billing">
+      <div class="toolbar">
+        <select id="filter-billing" onchange="renderBilling()">
+          <option value="">כל הסטטוסים</option>
+          <option value="לא הוגש">לא הוגש</option>
+          <option value="הוגש">הוגש</option>
+          <option value="שולם">שולם</option>
+        </select>
+      </div>
+      <table><thead><tr><th>לקוח</th><th>סכום</th><th>סטטוס גבייה</th><th>תאריך</th><th>פעולות</th></tr></thead><tbody id="billing-table"></tbody></table>
+    </div>
+
+    <div class="page" id="page-calendar">
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="openModal('event')">+ אירוע חדש</button>
+      </div>
+      <table><thead><tr><th>תאריך</th><th>שעה</th><th>תיאור</th><th>לקוח</th><th>סוג</th></tr></thead><tbody id="calendar-table"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- מודל פרויקט -->
+<div class="modal-bg" id="modal-project">
+  <div class="modal">
+    <h2>פרויקט חדש</h2>
+    <div class="field"><label>שם לקוח</label><input id="p-client" type="text"></div>
+    <div class="field"><label>טלפון</label><input id="p-phone" type="tel"></div>
+    <div class="field"><label>כתובת</label><input id="p-address" type="text"></div>
+    <div class="field"><label>סוג עבודה</label>
+      <select id="p-type"><option>התקנה חדשה</option><option>שירות ותיקון</option><option>VRF</option><option>מסחרי</option><option>אחר</option></select>
+    </div>
+    <div class="field"><label>סטטוס</label>
+      <select id="p-status"><option>ממתין</option><option>בביצוע</option><option>הושלם</option></select>
+    </div>
+    <div class="field"><label>עלות מערכת (₪)</label><input id="p-cost" type="number" value="0"></div>
+    <div class="field"><label>עלות אביזרים (₪)</label><input id="p-parts" type="number" value="0"></div>
+    <div class="field"><label>מחיר ללקוח (₪)</label><input id="p-price" type="number" value="0"></div>
+    <div class="field"><label>סטטוס גבייה</label>
+      <select id="p-billing"><option>לא הוגש</option><option>הוגש</option><option>שולם</option></select>
+    </div>
+    <div class="field"><label>הערות</label><textarea id="p-notes"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-cancel" onclick="closeModal('project')">ביטול</button>
+      <button class="btn btn-primary" onclick="saveProject()">שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- מודל אירוע -->
+<div class="modal-bg" id="modal-event">
+  <div class="modal">
+    <h2>אירוע חדש</h2>
+    <div class="field"><label>תיאור</label><input id="e-title" type="text"></div>
+    <div class="field"><label>לקוח</label><input id="e-client" type="text"></div>
+    <div class="field"><label>תאריך</label><input id="e-date" type="date"></div>
+    <div class="field"><label>שעה</label><input id="e-time" type="time"></div>
+    <div class="field"><label>סוג</label>
+      <select id="e-type"><option>התקנה</option><option>שירות</option><option>פגישה</option><option>אחר</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-cancel" onclick="closeModal('event')">ביטול</button>
+      <button class="btn btn-primary" onclick="saveEvent()">שמור</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const PASS = '05052530331Aa';
+  let projects = JSON.parse(localStorage.getItem('projects') || '[]');
+  let events = JSON.parse(localStorage.getItem('events') || '[]');
+  let editingIndex = -1;
+
+  // בדיקת כניסה קודמת
+  if (sessionStorage.getItem('loggedIn') === 'true') showApp();
+
+  function checkPassword() {
+    if (document.getElementById('password-input').value === PASS) {
+      sessionStorage.setItem('loggedIn', 'true');
+      showApp();
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+    }
+  }
+
+  function showApp() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('dateNow').textContent = new Date().toLocaleDateString('he-IL', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+    renderDashboard();
+  }
+
+  function logout() {
+    sessionStorage.removeItem('loggedIn');
+    location.reload();
+  }
+
+  function save() {
+    localStorage.setItem('projects', JSON.stringify(projects));
+    localStorage.setItem('events', JSON.stringify(events));
+  }
+
+  function showPage(name, e) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    e.target.classList.add('active');
+    if (name === 'dashboard') renderDashboard();
+    if (name === 'projects') renderProjects();
+    if (name === 'billing') renderBilling();
+    if (name === 'calendar') renderCalendar();
+  }
+
+  function openModal(type) { editingIndex = -1; document.getElementById('modal-' + type).classList.add('open'); }
+  function closeModal(type) { document.getElementById('modal-' + type).classList.remove('open'); }
+
+  function saveProject() {
+    const p = {
+      client: document.getElementById('p-client').value,
+      phone: document.getElementById('p-phone').value,
+      address: document.getElementById('p-address').value,
+      type: document.getElementById('p-type').value,
+      status: document.getElementById('p-status').value,
+      cost: +document.getElementById('p-cost').value,
+      parts: +document.getElementById('p-parts').value,
+      price: +document.getElementById('p-price').value,
+      billing: document.getElementById('p-billing').value,
+      notes: document.getElementById('p-notes').value,
+      date: new Date().toLocaleDateString('he-IL')
+    };
+    if (editingIndex >= 0) projects[editingIndex] = p;
+    else projects.unshift(p);
+    save(); closeModal('project'); renderProjects(); renderDashboard();
+  }
+
+  function editProject(i) {
+    editingIndex = i;
+    const p = projects[i];
+    ['client','phone','address','notes'].forEach(f => document.getElementById('p-'+f).value = p[f]);
+    ['type','status','billing'].forEach(f => document.getElementById('p-'+f).value = p[f]);
+    ['cost','parts','price'].forEach(f => document.getElementById('p-'+f).value = p[f]);
+    document.getElementById('modal-project').classList.add('open');
+  }
+
+  function updateBilling(i, val) { projects[i].billing = val; save(); renderBilling(); renderDashboard(); }
+
+  function renderProjects() {
+    const search = document.getElementById('search-projects').value.toLowerCase();
+    const filter = document.getElementById('filter-status').value;
+    const tbody = document.getElementById('projects-table');
+    tbody.innerHTML = '';
+    projects.filter(p => (!search || p.client.toLowerCase().includes(search)) && (!filter || p.status === filter))
+      .forEach((p, i) => {
+        const profit = p.price - p.cost - p.parts;
+        tbody.innerHTML += `<tr>
+          <td>${p.client}</td><td>${p.phone}</td><td>${p.type}</td>
+          <td><span class="badge ${p.status==='הושלם'?'green':p.status==='בביצוע'?'orange':'blue'}">${p.status}</span></td>
+          <td>₪${p.cost.toLocaleString()}</td><td>₪${p.price.toLocaleString()}</td>
+          <td class="${profit>=0?'profit':'loss'}">₪${profit.toLocaleString()}</td>
+          <td><button class="btn btn-sm btn-primary" onclick="editProject(${i})">עריכה</button></td>
+        </tr>`;
+      });
+  }
+
+  function renderBilling() {
+    const filter = document.getElementById('filter-billing').value;
+    const tbody = document.getElementById('billing-table');
+    tbody.innerHTML = '';
+    projects.filter(p => !filter || p.billing === filter).forEach((p, i) => {
+      tbody.innerHTML += `<tr>
+        <td>${p.client}</td><td>₪${p.price.toLocaleString()}</td>
+        <td><span class="badge ${p.billing==='שולם'?'green':p.billing==='הוגש'?'orange':'red'}">${p.billing}</span></td>
+        <td>${p.date}</td>
+        <td><select class="btn btn-sm" onchange="updateBilling(${i}, this.value)">
+          <option ${p.billing==='לא הוגש'?'selected':''}>לא הוגש</option>
+          <option ${p.billing==='הוגש'?'selected':''}>הוגש</option>
+          <option ${p.billing==='שולם'?'selected':''}>שולם</option>
+        </select></td>
+      </tr>`;
+    });
+  }
+
+  function renderCalendar() {
+    const tbody = document.getElementById('calendar-table');
+    tbody.innerHTML = '';
+    [...events].sort((a,b) => a.date > b.date ? 1 : -1).forEach(e => {
+      tbody.innerHTML += `<tr><td>${e.date}</td><td>${e.time}</td><td>${e.title}</td><td>${e.client}</td><td><span class="badge blue">${e.type}</span></td></tr>`;
+    });
+  }
+
+  function saveEvent() {
+    events.push({
+      title: document.getElementById('e-title').value,
+      client: document.getElementById('e-client').value,
+      date: document.getElementById('e-date').value,
+      time: document.getElementById('e-time').value,
+      type: document.getElementById('e-type').value
+    });
+    save(); closeModal('event'); renderCalendar();
+  }
+
+  function renderDashboard() {
+    document.getElementById('stat-total').textContent = projects.length;
+    document.getElementById('stat-active').textContent = projects.filter(p=>p.status==='בביצוע').length;
+    document.getElementById('stat-done').textContent = projects.filter(p=>p.status==='הושלם').length;
+    document.getElementById('stat-unpaid').textContent = projects.filter(p=>p.billing!=='שולם').length;
+    const rev = projects.filter(p=>p.billing==='שולם').reduce((s,p)=>s+p.price,0);
+    document.getElementById('stat-revenue').textContent = '₪' + rev.toLocaleString();
+    const tbody = document.getElementById('recent-projects');
+    tbody.innerHTML = '';
+    projects.slice(0,5).forEach(p => {
+      tbody.innerHTML += `<tr>
+        <td>${p.client}</td><td>${p.type}</td>
+        <td><span class="badge ${p.status==='הושלם'?'green':p.status==='בביצוע'?'orange':'blue'}">${p.status}</span></td>
+        <td>₪${p.price.toLocaleString()}</td>
+      </tr>`;
+    });
+  }
+</script>
+</body>
+</html>
