@@ -12,28 +12,28 @@
   .login-box { background: white; border-radius: 16px; padding: 40px; width: 90%; max-width: 360px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
   .login-box h1 { font-size: 22px; color: #1a73e8; margin-bottom: 8px; }
   .login-box p { color: #888; font-size: 13px; margin-bottom: 24px; }
-  .login-box input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; margin-bottom: 12px; text-align: center; letter-spacing: 2px; }
-  .login-box button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .login-box input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; margin-bottom: 12px; text-align: center; }
+  .login-box button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
+  .btn-google { background: white !important; color: #333 !important; border: 1px solid #ddd !important; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .login-box .error { color: #ea4335; font-size: 13px; margin-top: 8px; display: none; }
 
   #app { display: none; }
   header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
   header h1 { font-size: 22px; }
-  header span { font-size: 13px; opacity: 0.85; }
   .logout { background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; }
 
-  .tabs { display: flex; background: white; border-bottom: 2px solid #e0e0e0; padding: 0 16px; }
-  .tab { padding: 12px 20px; cursor: pointer; font-size: 14px; border-bottom: 3px solid transparent; color: #666; transition: all 0.2s; }
+  .tabs { display: flex; background: white; border-bottom: 2px solid #e0e0e0; padding: 0 16px; overflow-x: auto; }
+  .tab { padding: 12px 20px; cursor: pointer; font-size: 14px; border-bottom: 3px solid transparent; color: #666; transition: all 0.2s; white-space: nowrap; }
   .tab.active { border-bottom-color: #1a73e8; color: #1a73e8; font-weight: 600; }
 
   .content { padding: 20px; }
   .page { display: none; }
   .page.active { display: block; }
 
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
   .card { background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-  .card .num { font-size: 36px; font-weight: 700; color: #1a73e8; }
-  .card .label { font-size: 13px; color: #888; margin-top: 4px; }
+  .card .num { font-size: 32px; font-weight: 700; color: #1a73e8; }
+  .card .label { font-size: 12px; color: #888; margin-top: 4px; }
   .card.green .num { color: #34a853; }
   .card.red .num { color: #ea4335; }
   .card.orange .num { color: #fb8c00; }
@@ -52,6 +52,7 @@
 
   .btn { padding: 8px 18px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
   .btn-primary { background: #1a73e8; color: white; }
+  .btn-success { background: #34a853; color: white; }
   .btn-sm { padding: 5px 12px; font-size: 12px; }
 
   .toolbar { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
@@ -71,11 +72,13 @@
   .section-title { font-size: 16px; font-weight: 700; color: #333; margin-bottom: 12px; }
   .profit { color: #34a853; font-weight: 700; }
   .loss { color: #ea4335; font-weight: 700; }
+  .gcal-status { font-size: 12px; padding: 4px 10px; border-radius: 20px; }
+  .gcal-on { background: #e6f4ea; color: #2e7d32; }
+  .gcal-off { background: #fce8e6; color: #c62828; }
 </style>
 </head>
 <body>
 
-<!-- מסך כניסה -->
 <div id="login-screen">
   <div class="login-box">
     <h1>❄️ עובדיה מיזוג אוויר</h1>
@@ -86,12 +89,11 @@
   </div>
 </div>
 
-<!-- האפליקציה -->
 <div id="app">
   <header>
     <h1>❄️ עובדיה מיזוג אוויר</h1>
     <div style="display:flex;align-items:center;gap:12px;">
-      <span id="dateNow"></span>
+      <span id="gcal-indicator" class="gcal-status gcal-off">📅 Calendar: מנותק</span>
       <button class="logout" onclick="logout()">יציאה</button>
     </div>
   </header>
@@ -127,7 +129,7 @@
           <option value="ממתין">ממתין</option>
         </select>
       </div>
-      <table><thead><tr><th>לקוח</th><th>טלפון</th><th>סוג עבודה</th><th>סטטוס</th><th>עלות מערכת</th><th>מחיר ללקוח</th><th>רווח</th><th>פעולות</th></tr></thead><tbody id="projects-table"></tbody></table>
+      <table><thead><tr><th>לקוח</th><th>טלפון</th><th>סוג עבודה</th><th>סטטוס</th><th>עלות</th><th>מחיר</th><th>רווח</th><th>פעולות</th></tr></thead><tbody id="projects-table"></tbody></table>
     </div>
 
     <div class="page" id="page-billing">
@@ -145,8 +147,9 @@
     <div class="page" id="page-calendar">
       <div class="toolbar">
         <button class="btn btn-primary" onclick="openModal('event')">+ אירוע חדש</button>
+        <button class="btn btn-success" onclick="connectGoogleCalendar()" id="gcal-btn">🔗 חבר Google Calendar</button>
       </div>
-      <table><thead><tr><th>תאריך</th><th>שעה</th><th>תיאור</th><th>לקוח</th><th>סוג</th></tr></thead><tbody id="calendar-table"></tbody></table>
+      <table><thead><tr><th>תאריך</th><th>שעה</th><th>תיאור</th><th>לקוח</th><th>סוג</th><th>Google</th></tr></thead><tbody id="calendar-table"></tbody></table>
     </div>
   </div>
 </div>
@@ -185,24 +188,30 @@
     <div class="field"><label>תיאור</label><input id="e-title" type="text"></div>
     <div class="field"><label>לקוח</label><input id="e-client" type="text"></div>
     <div class="field"><label>תאריך</label><input id="e-date" type="date"></div>
-    <div class="field"><label>שעה</label><input id="e-time" type="time"></div>
+    <div class="field"><label>שעה התחלה</label><input id="e-time" type="time"></div>
+    <div class="field"><label>שעה סיום</label><input id="e-endtime" type="time"></div>
     <div class="field"><label>סוג</label>
       <select id="e-type"><option>התקנה</option><option>שירות</option><option>פגישה</option><option>אחר</option></select>
     </div>
     <div class="modal-footer">
       <button class="btn btn-cancel" onclick="closeModal('event')">ביטול</button>
-      <button class="btn btn-primary" onclick="saveEvent()">שמור</button>
+      <button class="btn btn-primary" onclick="saveEvent()">שמור + הוסף ליומן Google</button>
     </div>
   </div>
 </div>
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
   const PASS = '05052530331Aa';
+  const CLIENT_ID = '745247276442-okvi7sie517ldbk26du17ucm74smon57.apps.googleusercontent.com';
+  const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
+
   let projects = JSON.parse(localStorage.getItem('projects') || '[]');
   let events = JSON.parse(localStorage.getItem('events') || '[]');
   let editingIndex = -1;
+  let tokenClient = null;
+  let accessToken = null;
 
-  // בדיקת כניסה קודמת
   if (sessionStorage.getItem('loggedIn') === 'true') showApp();
 
   function checkPassword() {
@@ -217,18 +226,59 @@
   function showApp() {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
-    document.getElementById('dateNow').textContent = new Date().toLocaleDateString('he-IL', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
     renderDashboard();
+    initGoogleAuth();
   }
 
   function logout() {
     sessionStorage.removeItem('loggedIn');
+    accessToken = null;
     location.reload();
   }
 
   function save() {
     localStorage.setItem('projects', JSON.stringify(projects));
     localStorage.setItem('events', JSON.stringify(events));
+  }
+
+  // --- Google Calendar ---
+  function initGoogleAuth() {
+    google.accounts.oauth2 && (tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: (resp) => {
+        if (resp.access_token) {
+          accessToken = resp.access_token;
+          document.getElementById('gcal-indicator').textContent = '📅 Calendar: מחובר ✓';
+          document.getElementById('gcal-indicator').className = 'gcal-status gcal-on';
+          document.getElementById('gcal-btn').textContent = '✓ מחובר ל-Google Calendar';
+        }
+      }
+    }));
+  }
+
+  function connectGoogleCalendar() {
+    if (tokenClient) tokenClient.requestAccessToken();
+    else alert('טוען... נסה שוב בעוד שנייה');
+  }
+
+  async function addToGoogleCalendar(ev) {
+    if (!accessToken) { connectGoogleCalendar(); return false; }
+    const start = ev.date + 'T' + (ev.time || '08:00') + ':00';
+    const end = ev.date + 'T' + (ev.endtime || '10:00') + ':00';
+    const event = {
+      summary: `${ev.type}: ${ev.title} - ${ev.client}`,
+      start: { dateTime: start, timeZone: 'Asia/Jerusalem' },
+      end: { dateTime: end, timeZone: 'Asia/Jerusalem' }
+    };
+    try {
+      const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify(event)
+      });
+      return res.ok;
+    } catch { return false; }
   }
 
   function showPage(name, e) {
@@ -275,6 +325,25 @@
 
   function updateBilling(i, val) { projects[i].billing = val; save(); renderBilling(); renderDashboard(); }
 
+  async function saveEvent() {
+    const ev = {
+      title: document.getElementById('e-title').value,
+      client: document.getElementById('e-client').value,
+      date: document.getElementById('e-date').value,
+      time: document.getElementById('e-time').value,
+      endtime: document.getElementById('e-endtime').value,
+      type: document.getElementById('e-type').value,
+      inGoogle: false
+    };
+    if (accessToken) {
+      const ok = await addToGoogleCalendar(ev);
+      ev.inGoogle = ok;
+      if (ok) alert('✅ האירוע נוסף ל-Google Calendar!');
+    }
+    events.push(ev);
+    save(); closeModal('event'); renderCalendar();
+  }
+
   function renderProjects() {
     const search = document.getElementById('search-projects').value.toLowerCase();
     const filter = document.getElementById('filter-status').value;
@@ -315,19 +384,12 @@
     const tbody = document.getElementById('calendar-table');
     tbody.innerHTML = '';
     [...events].sort((a,b) => a.date > b.date ? 1 : -1).forEach(e => {
-      tbody.innerHTML += `<tr><td>${e.date}</td><td>${e.time}</td><td>${e.title}</td><td>${e.client}</td><td><span class="badge blue">${e.type}</span></td></tr>`;
+      tbody.innerHTML += `<tr>
+        <td>${e.date}</td><td>${e.time}</td><td>${e.title}</td><td>${e.client}</td>
+        <td><span class="badge blue">${e.type}</span></td>
+        <td>${e.inGoogle ? '<span class="badge green">✓ ביומן</span>' : '<span class="badge red">לא סונכרן</span>'}</td>
+      </tr>`;
     });
-  }
-
-  function saveEvent() {
-    events.push({
-      title: document.getElementById('e-title').value,
-      client: document.getElementById('e-client').value,
-      date: document.getElementById('e-date').value,
-      time: document.getElementById('e-time').value,
-      type: document.getElementById('e-type').value
-    });
-    save(); closeModal('event'); renderCalendar();
   }
 
   function renderDashboard() {
