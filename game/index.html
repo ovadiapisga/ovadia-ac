@@ -18,10 +18,15 @@
            font-size: 15px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
   #reset:active { transform: scale(0.95); }
 
-  #hint { position: fixed; bottom: calc(env(safe-area-inset-bottom) + 20px); left: 50%; transform: translateX(-50%);
+  #hint { position: fixed; top: calc(env(safe-area-inset-top) + 70px); left: 50%; transform: translateX(-50%);
           background: rgba(0,0,0,0.65); color: #fff; padding: 10px 18px; border-radius: 20px; font-size: 14px;
           white-space: nowrap; pointer-events: none; transition: opacity 0.6s; }
 
+  #chars { position: fixed; bottom: calc(env(safe-area-inset-bottom) + 16px); left: 0; right: 0; display: flex;
+           justify-content: center; gap: 8px; padding: 0 16px; }
+  .chip { background: rgba(255,255,255,0.85); border: 2px solid transparent; border-radius: 20px; padding: 8px 12px;
+          font-size: 14px; font-weight: 600; color: #333; font-family: inherit; }
+  .chip.on { border-color: #1a73e8; background: #fff; color: #1a73e8; }
   .pow { position: fixed; pointer-events: none; font-weight: 900; font-size: 30px; color: #ffeb3b;
          -webkit-text-stroke: 2px #d32f2f; text-shadow: 3px 3px 0 #d32f2f; transform: translate(-50%, -50%);
          animation: pow 0.7s ease-out forwards; }
@@ -43,6 +48,7 @@
   <div id="score">מכות: 0</div>
   <button id="reset">להקים אותה</button>
 </div>
+<div id="chars"></div>
 <div id="hint">נגיעה = מכה • גרירה = הזזה</div>
 
 <script type="module">
@@ -201,6 +207,12 @@ const skinMat = new THREE.MeshStandardMaterial({ color: 0xf1c27d, roughness: 0.7
 const dressMat = new THREE.MeshStandardMaterial({ color: 0xe53935, roughness: 0.6 });
 const hairMat = new THREE.MeshStandardMaterial({ color: 0x5d3a1a, roughness: 0.8 });
 const shoeMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.5 });
+const upperArmMat = new THREE.MeshStandardMaterial({ roughness: 0.7 });
+const forearmMat = new THREE.MeshStandardMaterial({ roughness: 0.7 });
+const handMat = new THREE.MeshStandardMaterial({ roughness: 0.7 });
+const legMat = new THREE.MeshStandardMaterial({ roughness: 0.7 });
+const tieMat = new THREE.MeshStandardMaterial({ color: 0x1565c0, roughness: 0.5 });
+const extraMat = new THREE.MeshStandardMaterial({ color: 0xff1744, roughness: 0.4 });
 const darkMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
 const blushMat = new THREE.MeshBasicMaterial({ color: 0xff8a80 });
 
@@ -229,15 +241,15 @@ function joint(n, r, mat) {
   m.scale.setScalar(r);
   joints.push({ m, p: P[n] });
 }
-seg('shL', 'elL', 0.04, skinMat); seg('elL', 'haL', 0.035, skinMat);
-seg('shR', 'elR', 0.04, skinMat); seg('elR', 'haR', 0.035, skinMat);
-seg('hipL', 'knL', 0.055, skinMat); seg('knL', 'ftL', 0.045, skinMat);
-seg('hipR', 'knR', 0.055, skinMat); seg('knR', 'ftR', 0.045, skinMat);
+seg('shL', 'elL', 0.04, upperArmMat); seg('elL', 'haL', 0.035, forearmMat);
+seg('shR', 'elR', 0.04, upperArmMat); seg('elR', 'haR', 0.035, forearmMat);
+seg('hipL', 'knL', 0.055, legMat); seg('knL', 'ftL', 0.045, legMat);
+seg('hipR', 'knR', 0.055, legMat); seg('knR', 'ftR', 0.045, legMat);
 seg('neck', 'head', 0.035, skinMat);
 joint('shL', 0.055, dressMat); joint('shR', 0.055, dressMat);
-joint('elL', 0.04, skinMat); joint('elR', 0.04, skinMat);
-joint('haL', 0.045, skinMat); joint('haR', 0.045, skinMat);
-joint('knL', 0.055, skinMat); joint('knR', 0.055, skinMat);
+joint('elL', 0.04, upperArmMat); joint('elR', 0.04, upperArmMat);
+joint('haL', 0.045, handMat); joint('haR', 0.045, handMat);
+joint('knL', 0.055, legMat); joint('knR', 0.055, legMat);
 joint('ftL', 0.06, shoeMat); joint('ftR', 0.06, shoeMat);
 
 // גוף ושמלה
@@ -247,7 +259,9 @@ upper.scale.set(0.18, 0.26, 0.11); upper.position.set(0, 0.22, 0);
 const skirt = makeMesh(new THREE.CylinderGeometry(0.13, 0.27, 0.42, 20, 1, true), dressMat, [P.pelvis, P.hipL, P.hipR]);
 skirt.material = dressMat.clone(); skirt.material.side = THREE.DoubleSide;
 skirt.position.set(0, -0.08, 0);
-scene.remove(upper, skirt); torso.add(upper, skirt);
+const tie = makeMesh(new THREE.BoxGeometry(0.04, 0.24, 0.01), tieMat, [P.chest]);
+tie.position.set(0, 0.3, 0.11); tie.rotation.x = -0.25;
+scene.remove(upper, skirt, tie); torso.add(upper, skirt, tie);
 
 // ראש
 const headG = new THREE.Group(); scene.add(headG);
@@ -262,7 +276,50 @@ const smile = makeMesh(new THREE.TorusGeometry(0.03, 0.006, 6, 16, Math.PI), dar
 smile.position.set(0, -0.035, 0.11); smile.rotation.z = Math.PI;
 const ohMouth = makeMesh(new THREE.TorusGeometry(0.018, 0.007, 6, 16), darkMat, [P.head]);
 ohMouth.position.set(0, -0.05, 0.108); ohMouth.visible = false;
-[face, hair, pony, eyeL, eyeR, cheekL, cheekR, smile, ohMouth].forEach(m => { scene.remove(m); headG.add(m); });
+const nose = makeMesh(ball, extraMat, [P.head]); nose.scale.setScalar(0.03); nose.position.set(0, -0.005, 0.12);
+const antenna = makeMesh(cyl, shoeMat, [P.head]); antenna.scale.set(0.008, 0.1, 0.008); antenna.position.set(0, 0.16, 0);
+const bulb = makeMesh(ball, extraMat, [P.head]); bulb.scale.setScalar(0.025); bulb.position.set(0, 0.22, 0);
+[nose, antenna, bulb, face, hair, pony, eyeL, eyeR, cheekL, cheekR, smile, ohMouth].forEach(m => { scene.remove(m); headG.add(m); });
+
+// ---------- דמויות ----------
+const SKIN = 0xf1c27d;
+const CHARACTERS = {
+  woman:  { name: 'אישה', dress: 0xe53935, skin: SKIN, hair: 0x5d3a1a, upperArm: SKIN, forearm: SKIN, hand: SKIN, legs: SKIN,
+            shoes: 0x333333, skirt: true, pony: true, hairScale: [0.13, 0.13, 0.12], cheeks: true },
+  suit:   { name: 'איש בחליפה', dress: 0x263c6b, skin: SKIN, hair: 0x222222, upperArm: 0x263c6b, forearm: 0x263c6b, hand: SKIN,
+            legs: 0x263c6b, shoes: 0x1a1a1a, tie: true, hairScale: [0.125, 0.11, 0.115], cheeks: false },
+  clown:  { name: 'ליצן', dress: 0x8e24aa, skin: 0xfff3e0, hair: 0xff6d00, upperArm: 0xffeb3b, forearm: 0xfff3e0, hand: 0xffffff,
+            legs: 0x43a047, shoes: 0xd50000, skirt: true, nose: true, hairScale: [0.17, 0.12, 0.13], cheeks: true },
+  robot:  { name: 'רובוט', dress: 0x90a4ae, skin: 0xb0bec5, hair: null, upperArm: 0x78909c, forearm: 0x90a4ae, hand: 0x607d8b,
+            legs: 0x78909c, shoes: 0x455a64, antenna: true, cheeks: false, metal: true },
+};
+function setCharacter(key) {
+  const c = CHARACTERS[key] || CHARACTERS.woman;
+  dressMat.color.setHex(c.dress); skirt.material.color.setHex(c.dress);
+  skinMat.color.setHex(c.skin);
+  upperArmMat.color.setHex(c.upperArm); forearmMat.color.setHex(c.forearm);
+  handMat.color.setHex(c.hand); legMat.color.setHex(c.legs); shoeMat.color.setHex(c.shoes);
+  for (const m of [dressMat, skinMat, upperArmMat, forearmMat, handMat, legMat]) {
+    m.metalness = c.metal ? 0.25 : 0; m.roughness = c.metal ? 0.35 : 0.7;
+  }
+  hair.visible = !!c.hair; pony.visible = !!c.pony;
+  if (c.hair) { hairMat.color.setHex(c.hair); hair.scale.set(...c.hairScale); }
+  skirt.visible = !!c.skirt; tie.visible = !!c.tie;
+  nose.visible = !!c.nose; antenna.visible = bulb.visible = !!c.antenna;
+  cheekL.visible = cheekR.visible = c.cheeks;
+  document.querySelectorAll('.chip').forEach(b => b.classList.toggle('on', b.dataset.key === key));
+  try { localStorage.setItem('doll-char', key); } catch (e) {}
+}
+const charsEl = document.getElementById('chars');
+for (const [key, c] of Object.entries(CHARACTERS)) {
+  const b = document.createElement('button');
+  b.className = 'chip'; b.dataset.key = key; b.textContent = c.name;
+  b.addEventListener('click', () => { setCharacter(key); resetDoll(); });
+  charsEl.appendChild(b);
+}
+let saved = 'woman';
+try { saved = localStorage.getItem('doll-char') || 'woman'; } catch (e) {}
+setCharacter(saved);
 
 let ouchTimer = 0;
 const mx = new THREE.Matrix4(), vR = new THREE.Vector3(), vU = new THREE.Vector3(), vF = new THREE.Vector3();
